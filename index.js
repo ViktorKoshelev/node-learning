@@ -1,3 +1,4 @@
 const { read } = require('./tree.js');
+const path = process.argv[2];
 
-read().then((result) => console.log(result));
+read(path).then((result) => console.log(result));

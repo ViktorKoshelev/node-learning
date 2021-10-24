@@ -1,34 +1,31 @@
 const { readdir, stat } = require('fs/promises');
+const { normalize, join } = require('path');
 
 function read(root) {
   if (root === undefined) {
     root = './';
   }
+  root = normalize(root);
   const result = {
     files: [],
     folders: [],
   };
 
-  function checkDir(path) {
-    return stat(path).then((stats) => {
-      if (stats.isDirectory()) {
-        const dir = path + '/';
-        result.folders.push(dir);
-        return read(dir).then((subResult) => {
-          result.files = result.files.concat(subResult.files);
-          result.folders = result.folders.concat(subResult.folders);
-        });
-      } else {
-        result.files.push(path);
-      }
-    });
-  }
-
   return readdir(root, { withFileTypes: true })
     .then((files) => {
       const proms = [];
-      for (const { name } of files) {
-        proms.push(checkDir(`${root}${name}`));
+      for (const file of files) {
+        const { name } = file;
+        if (file.isDirectory()) {
+          result.folders.push(join(root, name));
+          const prom = read(join(root, name)).then((subResult) => {
+            result.files = result.files.concat(subResult.files);
+            result.folders = result.folders.concat(subResult.folders);
+          })
+          proms.push(prom);
+        } else {
+          result.files.push(join(root, name));
+        }
       }
       return Promise.all(proms).then(() => result);
     })
