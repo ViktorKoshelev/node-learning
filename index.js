@@ -1,3 +1,3 @@
-// run `node index.js` in the terminal
+const { read } = require('./tree.js');
 
-console.log(`Hello Node.js v${process.versions.node}!`);
+read().then((result) => console.log(result));
